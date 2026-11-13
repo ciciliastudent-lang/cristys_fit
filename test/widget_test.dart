@@ -1,30 +1,61 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:christys_fit/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  // Pretend to be a phone so everything fits on screen.
+  void usephoneScreen(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+  }
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('Home screen loads with greeting and Tops selected',
+      (WidgetTester tester) async {
+    usephoneScreen(tester);
+    await tester.pumpWidget(const ChristysFitApp());
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    expect(find.textContaining('Christy.', findRichText: true), findsOneWidget);
+    expect(find.text('Tops · 2 of 4'), findsOneWidget);
+    expect(find.text('Choose a top.'), findsOneWidget);
+  });
+
+  testWidgets('Arrow buttons change the selected item',
+      (WidgetTester tester) async {
+    usephoneScreen(tester);
+    await tester.pumpWidget(const ChristysFitApp());
+
+    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.pump();
+    expect(find.text('Tops · 3 of 4'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pump();
+    expect(find.text('Tops · 2 of 4'), findsOneWidget);
+  });
+
+  testWidgets('Tapping a category switches the wardrobe',
+      (WidgetTester tester) async {
+    usephoneScreen(tester);
+    await tester.pumpWidget(const ChristysFitApp());
+
+    await tester.tap(find.text('Bottoms'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Choose a bottom.'), findsOneWidget);
+    expect(find.text('Bottoms · 1 of 4'), findsOneWidget);
+  });
+
+  testWidgets('Heart button toggles liked state', (WidgetTester tester) async {
+    usephoneScreen(tester);
+    await tester.pumpWidget(const ChristysFitApp());
+
+    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.favorite), findsOneWidget);
   });
 }
